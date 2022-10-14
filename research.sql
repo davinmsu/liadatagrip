@@ -12,7 +12,7 @@ WHERE
 --     AND user_id = '105620064'
     AND (( incoming = 1 AND meta !='{}') OR (incoming = 0))
     AND timestamp BETWEEN '2022-10-11 12:07:00' AND '2022-10-30 00:00:00'
-ORDER BY user_id, timestamp ASC
+ORDER BY user_id, timestamp
 ;
 
 
@@ -90,9 +90,9 @@ SELECT
     *
 FROM events_parsed
 WHERE
-    project_id = 'prod-137'
+    project_id = 'prod-303'
     AND (( incoming = 1 AND meta !='{}') OR (incoming = 0))
-    AND timestamp BETWEEN '2022-05-27 00:00:00' AND '2022-10-30 00:00:00'
-    AND user_id = '123095232'
+    AND timestamp BETWEEN '2022-10-14 00:00:00' AND '2022-10-30 00:00:00'
+    AND user_id = '123123123123123'
 -- ORDER BY user_id, timestamp ASC
 ;
