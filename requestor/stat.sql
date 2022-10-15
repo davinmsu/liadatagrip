@@ -1,27 +1,105 @@
+-- Funnel messages
+WITH
+    '2022-09-01 00:00:00' as startTime,
+    '2022-09-02 00:00:00' as endTime,
+    'prod-137' as project
 SELECT
-   uniqExact(user_id),
-   uniqExact(visitor_id)
-FROM events_parsed
-WHERE
-    project_id = 'prod-111'
---     AND ((incoming = 1 AND meta != '{}') OR (incoming = 0))
-    AND timestamp BETWEEN '2022-09-01 00:00:00' AND '2022-09-02 00:00:00'
--- ORDER BY user_id, ts_ns
+    n_messages,
+    cnt,
+    neighbor(cnt, 1) as keeps,
+    cnt-keeps as terminates,
+    round(keeps/cnt*100, 2) as keeps_pct,
+    round(terminates/cnt*100, 2) as terminates_pct
+FROM
+(
+    SELECT
+        groupArray(n_messages) as n_messages_arr,
+        sum(cnt) as sum,
+        arrayCumSum(groupArray(cnt)) as cnt_movsum_arr,
+        arrayPopBack(arrayPushFront(arrayMap(x -> sum - x, cnt_movsum_arr), toInt64(sum))) as cnt_funnel
+    FROM
+        (
+            SELECT n_messages,
+                   sum(n_messages) as cnt
+            FROM (
+                  SELECT user_id,
+                         length(arrayFilter(x -> x != 'terminate',
+                                            arrayJoin(arraySplit(x -> x = 'terminate', groupArray(type))))) as n_messages
+                  FROM (
+                        SELECT user_id,
+                               type
+                        FROM events_parsed
+                        WHERE timestamp BETWEEN startTime AND endTime
+                          AND project_id = project
+                          AND (type = 'terminate' OR (incoming = 1 AND meta != '{}'))
+                        ORDER BY user_id, ts_ns
+                           )
+                  GROUP BY user_id
+                  ORDER BY n_messages DESC
+                     )
+            WHERE n_messages > 0
+            GROUP BY n_messages
+            ORDER BY n_messages
+    )
+)
+ARRAY JOIN n_messages_arr AS n_messages, cnt_funnel as cnt
 ;
 
 
+
+
+-- top intents
+WITH
+    '2022-09-01 00:00:00' as startTime,
+    '2022-10-01 00:00:00' as endTime,
+    'prod-363' as project,
+    (project_id = project
+     AND (incoming = 1 AND meta != '{}')
+     AND timestamp BETWEEN startTime AND endTime) as clause,
+(
+      SELECT count(arrayJoin(intents)) as t
+      FROM events_parsed
+      WHERE clause
+) as total
+SELECT intent,
+       count(intent) as count,
+       round(count / total * 100, 2) as count_pct
+FROM (
+      SELECT arrayJoin(intents) as intent
+      FROM events_parsed
+      WHERE clause
+         )
+GROUP BY intent
+ORDER BY count DESC
+;
+
+
+
+-- coverage
 WITH
     '2022-09-01 00:00:00' as startTime,
     '2022-10-01 00:00:00' as endTime,
     'prod-363' as project
 SELECT
-     countIf(type = 'terminate') = 0                                   as is_a,
-     countIf(fully_marked = 0) = 0 AND countIf(type = 'terminate') > 0 as is_b,
-     countIf(fully_marked = 0) > 0 AND countIf(type = 'terminate') > 0 as is_c
-FROM events_parsed
-WHERE timestamp BETWEEN startTime AND endTime
-    AND project_id = project
-GROUP BY user_id
+    project,
+    count() as cnt,
+    sum(is_a) as cov_a,
+    sum(is_b) as cov_b,
+    sum(is_c) as cov_c,
+    cov_a + cov_b as cov,
+    round(cov_a / cnt * 100, 2) as cov_a_pct,
+    round(cov_b / cnt * 100, 2) as cov_b_pct,
+    round(cov_c / cnt * 100, 2) as cov_c_pct,
+    round(cov / cnt * 100, 2) as cov_pct
+FROM (
+      SELECT countIf(type = 'terminate') = 0                                   as is_a,
+             countIf(fully_marked = 0) = 0 AND countIf(type = 'terminate') > 0 as is_b,
+             countIf(fully_marked = 0) > 0 AND countIf(type = 'terminate') > 0 as is_c
+      FROM events_parsed
+      WHERE timestamp BETWEEN startTime AND endTime
+        AND project_id = project
+      GROUP BY user_id
+)
 ;
 
 
@@ -32,6 +110,7 @@ WITH
     'prod-363' as project,
     ('prod-188', 'prod-189', 'prod-363', 'prod-364') as special_projects
 SELECT
+       project,
        countIf(DISTINCT event_id, type = 'terminate') as terminates,
        uniqExact(event_id) as events,
        countIf(DISTINCT event_id, incoming = 1) as user_events,
@@ -45,55 +124,3 @@ WHERE
     AND project_id = project
 ;
 
-
-
--- Coverage
-WITH
-    '2022-09-01 00:00:00' as startTime,
-    '2022-10-01 00:00:00' as endTime
-SELECT
-    v,
-    u,
-    project_name,
-    project_id,
-    user_identifier,
-    cov_a,
-    cov_a + cov_b as coverage,
-    coverage*user_identifier
---        *,
---        round(user_identifier*cov_pct/100) as cov_users
-FROM
-(
-    SELECT project_id,
-           dictGetOrDefault('projects_dict', 'name', toUInt64(splitByChar('-', project_id)[2]), '') AS project_name,
-           count()                                                                                  as cnt,
-           round(sum(is_a) / cnt * 100, 2)                                                          as cov_a,
-           round(sum(is_b) / cnt * 100, 2)                                                          as cov_b,
-           round(sum(is_c) / cnt * 100, 2)                                                          as cov_c,
-           round(cov_a + cov_b, 2)                                                                  as cov_pct
-    FROM (
-          SELECT project_id,
-                 countIf(type = 'terminate') = 0                                   as is_a,
-                 countIf(fully_marked = 0) = 0 AND countIf(type = 'terminate') > 0 as is_b,
-                 countIf(fully_marked = 0) > 0 AND countIf(type = 'terminate') > 0 as is_c
-          FROM events_parsed
-          WHERE timestamp BETWEEN startTime AND endTime
-          GROUP BY project_id, user_id
-          ORDER BY project_id
-             )
-    GROUP BY project_id
-) AS coverage
-JOIN
-(
--- Determine user_identifier
-    SELECT project_id,
-           uniqExact(visitor_id)      as v,
-           uniqExact(user_id)         as u,
-           if(v > 1 AND v <= u, v, u) as user_identifier
-    FROM events_parsed
-    WHERE timestamp BETWEEN startTime AND endTime
-    GROUP BY project_id
-)
-AS users ON coverage.project_id = users.project_id
--- WHERE project_id in ('prod-364', 'prod-188', 'prod-189', 'prod-363')
-;
