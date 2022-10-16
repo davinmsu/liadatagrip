@@ -1,7 +1,7 @@
 -- fullstat
 WITH
-    '2022-09-01 00:00:00' as startTime,
-    '2022-10-01 00:00:00' as endTime,
+    '2022-09-01' as startTime,
+    '2022-10-01' as endTime,
     ('prod-188', 'prod-189', 'prod-363', 'prod-364') as special_projects
 SELECT
     project_id,
@@ -35,7 +35,7 @@ FROM
                  countIf(fully_marked = 0) = 0 AND countIf(type = 'terminate') > 0 as is_b,
                  countIf(fully_marked = 0) > 0 AND countIf(type = 'terminate') > 0 as is_c
           FROM events_parsed
-          WHERE timestamp BETWEEN startTime AND endTime
+          WHERE timestamp BETWEEN toDate(startTime) AND toDate(endTime)
           GROUP BY project_id, user_id
           ORDER BY project_id
              )
@@ -52,7 +52,7 @@ JOIN
            uniqExact(user_id)         as sessions,
            if(v > 1 AND v <= sessions AND project_id NOT IN special_projects, v, sessions) as user_identifier
     FROM events_parsed
-    WHERE timestamp BETWEEN startTime AND endTime
+    WHERE timestamp BETWEEN toDate(startTime) AND toDate(endTime)
     AND ((incoming = 1 AND meta != '{}') OR (incoming = 0))
     GROUP BY project_id
 )
