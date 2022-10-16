@@ -1,15 +1,21 @@
 -- Funnel messages
 WITH
-    '2022-09-01 00:00:00' as startTime,
-    '2022-09-02 00:00:00' as endTime,
+    '2022-09-01' as startTime,
+    '2022-09-02' as endTime,
     'prod-137' as project
 SELECT
+       arrayStringConcat(groupArray(text), '\n') as text
+FROM
+(SELECT
     n_messages,
     cnt,
     neighbor(cnt, 1) as keeps,
-    cnt-keeps as terminates,
-    round(keeps/cnt*100, 2) as keeps_pct,
-    round(terminates/cnt*100, 2) as terminates_pct
+    cnt - keeps as terminates,
+    round(keeps / cnt * 100, 2) as keeps_pct,
+    round(terminates / cnt * 100, 2) as terminates_pct,
+    concat(
+        'сообщение #', toString(n_messages), ': keeps ', toString(keeps),' (', toString(keeps_pct),'%), terminates ', toString(terminates),' (', toString(terminates_pct),'%)'
+    )  as text
 FROM
 (
     SELECT
@@ -29,7 +35,7 @@ FROM
                         SELECT user_id,
                                type
                         FROM events_parsed
-                        WHERE timestamp BETWEEN startTime AND endTime
+                        WHERE timestamp BETWEEN toDate(startTime) AND toDate(endTime)
                           AND project_id = project
                           AND (type = 'terminate' OR (incoming = 1 AND meta != '{}'))
                         ORDER BY user_id, ts_ns
@@ -43,6 +49,7 @@ FROM
     )
 )
 ARRAY JOIN n_messages_arr AS n_messages, cnt_funnel as cnt
+)
 ;
 
 
@@ -50,27 +57,34 @@ ARRAY JOIN n_messages_arr AS n_messages, cnt_funnel as cnt
 
 -- top intents
 WITH
-    '2022-09-01 00:00:00' as startTime,
-    '2022-10-01 00:00:00' as endTime,
+    '2022-09-01' as startTime,
+    '2022-10-01' as endTime,
     'prod-363' as project,
     (project_id = project
      AND (incoming = 1 AND meta != '{}')
-     AND timestamp BETWEEN startTime AND endTime) as clause,
+     AND timestamp BETWEEN toDate(startTime) AND toDate(endTime)) as clause,
 (
       SELECT count(arrayJoin(intents)) as t
       FROM events_parsed
       WHERE clause
 ) as total
-SELECT intent,
-       count(intent) as count,
-       round(count / total * 100, 2) as count_pct
-FROM (
-      SELECT arrayJoin(intents) as intent
-      FROM events_parsed
-      WHERE clause
-         )
-GROUP BY intent
-ORDER BY count DESC
+SELECT
+       arrayStringConcat(groupArray(text), '\n') as text
+    FROM (
+          SELECT intent,
+                 count(intent)               as cnt,
+                 round(cnt / total * 100, 2) as count_pct,
+                 concat(
+                         toString(intent), ' ', toString(cnt), ' (', toString(count_pct), '%)'
+                     )                       as text
+          FROM (
+                SELECT arrayJoin(intents) as intent
+                FROM events_parsed
+                WHERE clause
+                   )
+          GROUP BY intent
+          ORDER BY cnt DESC
+)
 ;
 
 

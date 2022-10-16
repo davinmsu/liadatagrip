@@ -26,7 +26,7 @@ SELECT
     user_identifier,
     cov_a,
     cov_a + cov_b as coverage,
-    coverage*user_identifier
+    round(coverage*user_identifier, 2) as cov_mau
 --        *,
 --        round(user_identifier*cov_pct/100) as cov_users
 FROM
