@@ -1,3 +1,15 @@
+SELECT
+    DISTINCT toDate(timestamp)  as date
+FROM events_parsed
+WHERE
+    project_id = 'prod-137'
+ORDER BY date
+--     AND timestamp > '2021-04-01 00:00:00'
+--     AND timestamp < '2021-05-01 00:00:00'
+;
+
+
+
 
 
 -- Fast Dialogs
