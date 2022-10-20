@@ -22,6 +22,8 @@ LIMIT 1 BY id
 
 
 
+SELECT * FROM temp.trigger_intents_131;
+
 
 
 SELECT
@@ -36,3 +38,18 @@ WHERE
     AND timestamp BETWEEN '2022-10-17 11:00:00' AND '2022-11-02 00:00:00'
 ORDER BY user_id, ts_ms
 LIMIT 1 BY text
+
+
+
+
+
+SELECT
+    JSONExtractString(meta, 'reaction') as reaction,
+    count() as cnt
+FROM events_parsed
+WHERE
+    project_id = 'prod-131'
+    AND incoming = 0
+    AND timestamp BETWEEN '2022-10-17 11:00:00' AND '2022-11-02 00:00:00'
+GROUP BY reaction
+;
