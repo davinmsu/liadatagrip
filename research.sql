@@ -114,3 +114,41 @@ WHERE
 
 
 
+SELECT
+*
+--     timestamp,
+--     user_id,
+--     project_id,
+--     type,
+--        incoming,
+--        text,
+--        intents,
+--        fact_keys,
+--        facts
+FROM events_parsed
+WHERE
+    timestamp between '2022-08-24 10:15:00' AND '2022-11-24 10:16:00'
+    and project_id = 'prod-316'
+--     and user_id = '56875'
+    and text like '%мы уже передаём его курьеру. Доставим к%'
+--     AND timestamp > toStartOfYear(now())
+ORDER BY ts_ms
+;
+
+
+
+SELECT
+    toStartOfMonth(timestamp) as month,
+    uniqExact(user_id)
+FROM events_parsed
+WHERE
+--     timestamp > toStartOfYear(now())
+    project_id in ('prod-258', 'prod-365', 'prod-428', 'prod-502')
+GROUP BY month
+ORDER BY month
+
+
+
+
+
+
