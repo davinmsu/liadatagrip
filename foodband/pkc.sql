@@ -11,6 +11,7 @@ SELECT
        incoming,
        text,
        intents,
+       arrayMap(x -> (dictGetOrDefault('intents_dict', 'name', toUInt64(splitByChar('-', x)[2]), '')), intents) as intent_names,
        reaction,
        JSONExtractRaw(facts, 'user_token') as user_token,
        facts
@@ -26,3 +27,5 @@ WHERE
         )
     AND timestamp > start_time
 ORDER BY user_id, ts_ms
+
+
