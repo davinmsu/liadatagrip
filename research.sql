@@ -47,10 +47,11 @@ SELECT
     uniqExact(user_id) as mau
 FROM events_parsed
 WHERE
-    toDate(timestamp) >= '2022-08-01'
-    AND toDate(timestamp) < '2022-09-01'
+    toDate(timestamp) >= '2021-12-01'
+    AND toDate(timestamp) < '2022-01-01'
+    AND project_name = 'Urent'
 GROUP BY project_id
-HAVING mau > 100
+HAVING mau > 1
 ORDER BY mau DESC
 ;
 
@@ -150,5 +151,12 @@ ORDER BY month
 
 
 
+
+
+SELECT *
+FROM events_parsed
+WHERE project_id = 'prod-405'
+and timestamp > toStartOfDay(now())
+;
 
 
