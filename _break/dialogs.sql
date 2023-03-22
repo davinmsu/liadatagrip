@@ -1,12 +1,12 @@
 WITH
     'prod-303' as required_project_id,
-    (date_trunc('day', timestamp) >= '2022-12-05') as required_time_clause,
+    timestamp between '2023-03-12 14:30:00' and '2023-03-12 17:30:00' as required_time_clause,
+--     (date_trunc('day', timestamp) == '2022-11-29') as required_time_clause,
     user_filter_clause as (
         SELECT user_id
         FROM events_parsed
         WHERE project_id = required_project_id
           AND required_time_clause
-          AND user_id = '1423729'
 
     )
 SELECT concat(

@@ -1,12 +1,36 @@
+SELECT
+    DISTINCT user_id
+FROM (
+         SELECT user_id,
+                timestamp,
+                arrayJoin(intents) as intent,
+                text
+         FROM events_parsed
+         WHERE project_id = 'prod-111'
+           AND toDate(timestamp) >= '2022-12-07'
+           AND intent = 'intent-34518'
+         )
+;
+
+
+
 WITH
-    'prod-303' as required_project_id,
-    (date_trunc('day', timestamp) >= '2022-12-05') as required_time_clause,
+    'prod-111' as required_project_id,
+    (date_trunc('month', timestamp) == '2022-10-01') as required_time_clause,
+    (intent = 'intent-34518') as required_intent,
     user_filter_clause as (
-        SELECT user_id
-        FROM events_parsed
-        WHERE project_id = required_project_id
-          AND required_time_clause
-          AND user_id = '1423729'
+SELECT
+    DISTINCT user_id
+FROM (
+         SELECT user_id,
+                timestamp,
+                arrayJoin(intents) as intent,
+                text
+         FROM events_parsed
+         WHERE project_id = required_project_id
+           AND required_time_clause
+           AND required_intent
+         )
 
     )
 SELECT concat(
@@ -16,11 +40,10 @@ SELECT concat(
 FROM (SELECT groupArray(
                      concat(
                              formatDateTime(timestamp, '%F %T') as datetime, ' ',
-                             if(incoming, 'user', 'lia') as who, ' ',
+                             if(incoming, 'user', 'lia') as who, ': ',
                              arrayStringConcat(intents, ', ') as intents,
                              ' | ',
                              arrayStringConcat(intent_names, ', ') as intent_names,
-                             if(not incoming, concat('reaction: ', toString(reaction)), ''),
                              '\n',
                              if(type = 'text', text, type), '\n'
                          ) as str

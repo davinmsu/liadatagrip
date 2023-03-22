@@ -1,6 +1,30 @@
+
+SELECT
+    email, totp_secret
+
+from web_user
+where email in (
+'romanbolshakov.90@gmail.com',
+'rybak+growfood@lia.chat',
+'rybak+foodband@lia.chat',
+'rybak+tutgood@lia.chat',
+'k.dutieva@gmail.com',
+'beresneva.irina.s@gmail.com',
+'tulakovaalina0@gmail.com'
+)
+;
+
+
+
+
+
+
+
+
+
 SELECT * from web_user
 where email like '%rybak+gr%'
-
+;
 
 
 SELECT *

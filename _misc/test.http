@@ -1,0 +1,14 @@
+
+POST https://dev.lia.chat/api/v1/handling/event?key=y11VYK5SYVVWFTJwnzHZ4E4SNhVgzWPQcJ2HkVPMYhqSxPgyWSV2B2LY6z6kgY66
+Content-Type: application/json
+
+{
+    "user_id": "kbn1",
+    "event": {
+        "type": "text",
+        "params": {
+            "text": "{{$random.email}}"
+        }
+    }
+}
+

@@ -9,6 +9,20 @@ WHERE
 ORDER BY ts_ms
 ;
 
+
+SELECT
+    timestamp,
+    JSONExtractString(JSONExtractRaw(facts, 'transfer_params'), 'assignee_id') as assignee_id,
+    JSONExtractString(JSONExtractRaw(facts, 'transfer_params'), 'assignee_email') as email,
+    facts
+FROM events_parsed
+WHERE
+    project_id = 'prod-303'
+    AND timestamp >= '2022-12-07 13:00:00'
+    AND assignee_id not in ('', null)
+ORDER BY ts_ms
+;
+
 -- 1381528
 -- 1381988
 -- 1381771
