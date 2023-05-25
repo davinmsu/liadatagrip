@@ -14,12 +14,16 @@ WHERE
 
 
 SELECT
+    text,
     *
 FROM default.events_parsed
 WHERE
     project_id = 'prod-111'
-    AND toDate(timestamp) = '2022-12-01'
-LIMIT 100
+    AND toDate(timestamp) > '2023-04-01'
+    AND user_id = '3243728'
+    AND incoming = 1
+ORDER BY ts_ms
+-- LIMIT 100
 
 --     AND timestamp > toStartOfHour(now())
 

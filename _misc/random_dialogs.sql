@@ -1,39 +1,18 @@
-SELECT
-    *
-FROM events_parsed
-WHERE
-    project_id = 'prod-131'
-    AND toDate(timestamp) = '2023-05-10'
-LIMIT 1000
-;
-
-
-
-
-
-SELECT
-    DISTINCT user_id
-FROM events_parsed
-WHERE
-    project_id = 'prod-131'
-    AND toDate(timestamp) >= '2022-12-12'
-    AND reaction = '27302bd7-2fa2-4bd5-9d24-0e881ed65a3c'
-;
-
--- Dialogs reactions
+-- Fast Dialogs with more then 1 intent in any message
 WITH
-    'prod-131' as required_project_id,
-    (date_trunc('day', timestamp) == '2022-12-01') as required_time_clause,
+    'prod-405' as required_project_id,
+    (date_trunc('month', timestamp) == '2022-10-01') as required_time_clause,
     user_filter_clause as (
-    SELECT
-        DISTINCT user_id
-    FROM events_parsed
-    WHERE
-        project_id = required_project_id
-        AND required_time_clause
-        AND reaction = '27302bd7-2fa2-4bd5-9d24-0e881ed65a3c'
+        SELECT user_id
+        FROM events_parsed
+        WHERE project_id = required_project_id
+          AND required_time_clause
+          AND length(intents) > 1
+
     )
-SELECT concat(
+SELECT
+    user_id,
+    concat(
                '_________________________\n', 'user: ', user_id, '\n',
                arrayStringConcat(gr, '\n'), '\n'
            ) as user
@@ -59,5 +38,7 @@ FROM (SELECT groupArray(
                )
       GROUP BY user_id
          )
+ORDER BY rand()
+LIMIT 5
 
 ;

@@ -8,7 +8,7 @@ SELECT
 --     *
 FROM events_parsed
 WHERE
-    project_id = 'prod-528'
+    project_id = 'prod-527'
     AND toDate(timestamp) >= '2023-02-22'
 --     AND text like '%тэги%'
 --     AND incoming = 1

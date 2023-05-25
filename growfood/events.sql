@@ -2,11 +2,11 @@ SELECT
     *
 FROM events_parsed
 WHERE
---     project_id = 'prod-182'
-    toDate(timestamp) > '2023-02-01'
+    project_id = 'prod-182'
+    AND toDate(timestamp) = '2023-04-19'
 --     AND user_id = '630057874'
 ORDER BY ts_ms DESC
-LIMIT 100
+-- LIMIT 100
 ;
 
 

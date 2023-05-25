@@ -34,10 +34,14 @@ FROM (
          )
 
     )
-SELECT concat(
-               '_________________________\n', 'user: ', user_id, '\n',
-               arrayStringConcat(gr, '\n'), '\n'
-           ) as user
+
+
+SELECT
+    user_id,
+    dialog_start,
+    dialog_end,
+    round((dialog_end - dialog_start)/60) as dialog_len_min,
+    arrayStringConcat(gr, '\n') as dialog
 FROM (SELECT groupArray(
                      concat(
                              formatDateTime(timestamp, '%F %T') as datetime, ' ',
@@ -49,7 +53,9 @@ FROM (SELECT groupArray(
                              if(type = 'text', text, type), '\n'
                          ) as str
                  ) as gr,
-             user_id
+             user_id,
+             min(timestamp) as dialog_start,
+             max(timestamp) as dialog_end
       FROM (SELECT *,
             arrayMap(x -> (dictGetOrDefault('intents_dict', 'name', toUInt64OrZero(splitByChar('-', x)[2]), '')), intents) as intent_names
             FROM events_parsed

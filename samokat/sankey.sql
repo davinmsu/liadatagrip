@@ -66,7 +66,8 @@ INSERT INTO temp.samokat_keypoints (uuid, name) VALUES
 ('6f4c7c9b-6486-4267-a690-4589865657ca','Интент не проверен, позвал человека в нерабочее время');
 
 
-
+-- Неверная квартира
+-- https://app.lia.chat/app/137/flows/10525
 -- '22fbc09f-843f-4158-b13c-0903d3659a11',
 -- '5f4407a0-56ab-4588-b34c-94076d105133',
 -- '436e8b7e-f295-4a7a-8067-6cb5a80ef51e',
@@ -78,7 +79,8 @@ INSERT INTO temp.samokat_keypoints (uuid, name) VALUES
 -- 'd4dd73c5-b296-40b5-8803-23ab2d2968ea',
 -- 'd73147e4-f889-455b-be6e-57869fb7e743'
 
-
+-- Быстрее
+-- https://app.lia.chat/app/137/flows/14510
 -- 'c7d26f3a-ae9b-4447-a03c-36e7987607a1',
 -- '4fb9dc34-1bda-41e0-b64c-403abbde2614',
 -- '6a8b7755-d015-4177-a0fc-4bae0fbf7399',
@@ -89,32 +91,34 @@ INSERT INTO temp.samokat_keypoints (uuid, name) VALUES
 -- '0b1eaccf-8ec7-4d06-824e-6772789da1a3',
 -- 'b5531d34-8c84-4c38-85c1-fe7fd8b80a33'
 
-'9dac439f-abcc-4e31-a2c0-1ef28b829686',
-'934248ce-c6c0-4225-8c77-df6b84c4fe95',
-'56246bc6-43da-4793-a5de-40a1f0056668',
-'efe04454-e1e5-4000-ac83-477422287c71',
-'ef32f2ce-5297-49d3-a8da-bc6bf88cbbd9',
-'b8edb67e-cedb-499d-b300-80f6c2d917bf',
-'0809792d-d666-4638-8057-bce66394d56a',
-'3191c97b-25a6-4274-9a06-dcfa74eab755',
-'2ea41601-c20b-451d-8bf9-9e7d1b3ff216',
-'52bf238a-7a3b-419e-9de0-7425061852b2',
-'6f4c7c9b-6486-4267-a690-4589865657ca'
+
+-- Комментарий: срок годности
+-- https://app.lia.chat/app/137/flows/12560
+-- '9dac439f-abcc-4e31-a2c0-1ef28b829686',
+-- '934248ce-c6c0-4225-8c77-df6b84c4fe95',
+-- '56246bc6-43da-4793-a5de-40a1f0056668',
+-- 'efe04454-e1e5-4000-ac83-477422287c71',
+-- 'ef32f2ce-5297-49d3-a8da-bc6bf88cbbd9',
+-- 'b8edb67e-cedb-499d-b300-80f6c2d917bf',
+-- '0809792d-d666-4638-8057-bce66394d56a',
+-- '3191c97b-25a6-4274-9a06-dcfa74eab755',
+-- '2ea41601-c20b-451d-8bf9-9e7d1b3ff216',
+-- '52bf238a-7a3b-419e-9de0-7425061852b2',
+-- '6f4c7c9b-6486-4267-a690-4589865657ca'
 
 
 
 WITH
 (
-'22fbc09f-843f-4158-b13c-0903d3659a11',
-'5f4407a0-56ab-4588-b34c-94076d105133',
-'436e8b7e-f295-4a7a-8067-6cb5a80ef51e',
-'db0fc70e-5c66-4f1c-8e3f-bb9e350d8124',
-'d85721b9-e425-470a-b4df-6e77cd981821',
-'b34f9fb6-ae0b-4163-91ff-0484db7d6fca',
-'a4b29b17-0ee3-44a1-a49f-4299fb832e36',
-'56dd4c5b-3ada-4f72-bd20-edd4d67f72f0',
-'d4dd73c5-b296-40b5-8803-23ab2d2968ea',
-'d73147e4-f889-455b-be6e-57869fb7e743'
+'c7d26f3a-ae9b-4447-a03c-36e7987607a1',
+'4fb9dc34-1bda-41e0-b64c-403abbde2614',
+'6a8b7755-d015-4177-a0fc-4bae0fbf7399',
+'836695e6-964c-4356-8278-b8201c801e06',
+'d9ddfa32-610b-4b20-9519-509368612353',
+'c2609a7f-bae6-432a-9adb-67d591fdc61c',
+'fc0e285f-f04d-4025-8f19-4982be83ca09',
+'0b1eaccf-8ec7-4d06-824e-6772789da1a3',
+'b5531d34-8c84-4c38-85c1-fe7fd8b80a33'
 ) as common_reactions
 
 SELECT
@@ -138,7 +142,7 @@ FROM
                            t2.name as reaction_name,
                            JSONExtractString(meta, 'reaction') as reaction
                     FROM default.events_parsed
-                    INNER JOIN temp.smm_keypoints as t2
+                    INNER JOIN temp.samokat_keypoints as t2
                     ON reaction = t2.uuid
                     WHERE project_id = 'prod-137'
                       AND toDate(timestamp) > toStartOfMonth(now())
